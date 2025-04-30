@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GoodHamburgerApi.Controllers
 {
     [ApiController]
-    [Route("api/products")]
+    [Route("products")]
     public class ProductsController : ControllerBase
     {
 

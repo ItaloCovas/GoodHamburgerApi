@@ -15,6 +15,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ComboService>();
+builder.Services.AddScoped<OrderService>();
 
 var app = builder.Build();
 
