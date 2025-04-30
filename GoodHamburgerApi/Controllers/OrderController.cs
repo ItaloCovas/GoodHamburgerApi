@@ -2,12 +2,12 @@
 using GoodHamburgerApi.Models;
 using GoodHamburgerApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace GoodHamburgerApi.Controllers
 {
     [ApiController]
     [Route("orders")]
+    
     public class OrderController : ControllerBase
     {
         private readonly OrderService _orderService;
@@ -18,25 +18,23 @@ namespace GoodHamburgerApi.Controllers
         }
 
         /// <summary>
-        /// Creates a TodoItem.
+        /// Create a new order based on a list of product IDs.
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns>A newly created TodoItem</returns>
+        /// <param name="productIds">List of product IDs</param>
+        /// <returns>A newly created order</returns>
         /// <remarks>
-        /// Sample request:
-        ///
-        ///     
-        ///     [
-        ///        1,
-        ///        2,
-        ///        3
-        ///     ]
-        ///
+        /// Product IDs:
+        /// - 1 = X Burger
+        /// - 2 = X Egg
+        /// - 3 = X Bacon
+        /// - 4 = Fries
+        /// - 5 = Soft Drink
+        /// 
+        /// Sample request body:
+        /// [1, 4, 5]
         /// </remarks>
         [HttpPost]
-        public IActionResult CreateOrder(
-            [FromBody, SwaggerParameter(Description = "List of product IDs to create an order. For example, 1 = 'Hamburger', 2 = 'Fries', 3 = 'Soft Drink'.")]
-            List<int> productIds)
+        public IActionResult CreateOrder(List<int> productIds)
         {
             var (order, error) = _orderService.CreateOrder(productIds);
 
@@ -44,20 +42,19 @@ namespace GoodHamburgerApi.Controllers
             {
                 return BadRequest(error);
             }
-
-            // i had to treat this inside the controller, due to the types
-            var formattedTotalPrice = order?.TotalPrice.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-
             
             var response = new
             {
                 OrderId = order?.Id,
-                TotalPrice = formattedTotalPrice
+                TotalPrice = order?.TotalPrice.ToString("C2", CultureInfo.GetCultureInfo("en-US"))
             };
 
             return Ok(response);
         }
 
+        /// <summary>
+        /// Return all orders.
+        /// </summary>
         [HttpGet]
         public IActionResult GetAllOrders()
         {
@@ -75,6 +72,9 @@ namespace GoodHamburgerApi.Controllers
             return Ok(formattedOrders);
         }
 
+        /// <summary>
+        /// Return a single order based on the id.
+        /// </summary>
         [HttpGet("{id}")]
         public IActionResult GetOrderById(int id)
         {
@@ -82,7 +82,13 @@ namespace GoodHamburgerApi.Controllers
             if (order == null)
                 return NotFound($"Order {id} not found.");
 
-            return Ok(order);
+            var response = new
+            {
+                OrderId = order?.Id,
+                TotalPrice = order?.TotalPrice.ToString("C2", CultureInfo.GetCultureInfo("en-US"))
+            };
+
+            return Ok(response);
         }
     }
 }

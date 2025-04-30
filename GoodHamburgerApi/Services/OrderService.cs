@@ -16,12 +16,16 @@ namespace GoodHamburgerApi.Services
 
         public (Order? Order, string? Error) CreateOrder(List<int> productIds)
         {
+            // check same id products like [1,1] and [2,2]
+            if (productIds.GroupBy(pid => pid).Any(group => group.Count() > 1))
+                return (null, "You can't add the same product more than once.");
+
             var products = _context.Products.Where(p => productIds.Contains(p.Id)).ToList();
 
             if (products.Count == 0)
                 return (null, "No valid products found.");
 
-            // Evitar dois itens idênticos
+            // avoid two identical items
             var groupedByType = products.GroupBy(p => p.Type);
             foreach (var group in groupedByType)
             {
@@ -55,6 +59,7 @@ namespace GoodHamburgerApi.Services
 
             total -= total * discount;
 
+            // saving order
             var newOrder = new Order
             {
                 TotalPrice = total
@@ -62,6 +67,8 @@ namespace GoodHamburgerApi.Services
 
             _context.Orders.Add(newOrder);
             _context.SaveChanges();
+
+            // saving order products
 
             var orderProducts = productIds.Select(pid => new OrderProduct
             {

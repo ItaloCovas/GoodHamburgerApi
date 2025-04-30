@@ -1,3 +1,4 @@
+using System.Reflection;
 using GoodHamburger.Data;
 using GoodHamburger.Seed;
 using GoodHamburgerApi.Services;
@@ -11,7 +12,13 @@ builder.Services.AddDbContext<GoodHamburgerContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    // enable xml comments like summary, remarks
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
+    $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+});
 
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ComboService>();

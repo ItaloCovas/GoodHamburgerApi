@@ -15,6 +15,9 @@ namespace GoodHamburgerApi.Controllers
             _comboService = comboService;
         }
 
+        /// <summary>
+        /// Return all combos.
+        /// </summary>
         [HttpGet]
         public ActionResult<IEnumerable<Combo>> GetAll()
         {
@@ -22,6 +25,9 @@ namespace GoodHamburgerApi.Controllers
             return Ok(combos);
         }
 
+        /// <summary>
+        ///  Return a single combo based on the id.
+        /// </summary>
         [HttpGet("{id}")]
         public ActionResult<Combo> GetById(int id)
         {
