@@ -7,7 +7,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="NewFolder1\**" />
+    <Compile Remove="NewFolder\**" />
+    <Compile Remove="Seed - Copy\**" />
+    <Content Remove="NewFolder1\**" />
+    <Content Remove="NewFolder\**" />
+    <Content Remove="Seed - Copy\**" />
+    <EmbeddedResource Remove="NewFolder1\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <EmbeddedResource Remove="Seed - Copy\**" />
+    <None Remove="NewFolder1\**" />
+    <None Remove="NewFolder\**" />
+    <None Remove="Seed - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
   </ItemGroup>
 
 </Project>
