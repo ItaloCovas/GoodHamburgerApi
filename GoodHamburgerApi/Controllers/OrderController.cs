@@ -24,11 +24,11 @@ namespace GoodHamburgerApi.Controllers
         /// <returns>A newly created order</returns>
         /// <remarks>
         /// Product IDs:
-        /// - 1 = X Burger
-        /// - 2 = X Egg
-        /// - 3 = X Bacon
-        /// - 4 = Fries
-        /// - 5 = Soft Drink
+        /// - 1 = X Burger = $5,00
+        /// - 2 = X Egg = $ 4,50
+        /// - 3 = X Bacon = $ 7,00
+        /// - 4 = Fries = $ 2,00
+        /// - 5 = Soft Drink = $ 2,50
         /// 
         /// Sample request body:
         /// [1, 4, 5]
@@ -89,6 +89,53 @@ namespace GoodHamburgerApi.Controllers
             };
 
             return Ok(response);
+        }
+
+        /// <summary>
+        /// Update an existing order with a new list of product IDs.
+        /// </summary>
+        /// <param name="id">Order ID</param>
+        /// <param name="productIds">Updated list of product IDs</param>
+        /// <returns>The updated order</returns>
+        /// <remarks>
+        /// Sample request body:
+        /// [1, 4]
+        /// </remarks>
+        [HttpPut("{id}")]
+        public IActionResult UpdateOrder(int id, List<int> productIds)
+        {
+            var (updatedOrder, error) = _orderService.UpdateOrder(id, productIds);
+
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
+
+            var response = new
+            {
+                OrderId = updatedOrder?.Id,
+                TotalPrice = updatedOrder?.TotalPrice.ToString("C2", CultureInfo.GetCultureInfo("en-US"))
+            };
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Delete an order based on the id.
+        /// </summary>
+        /// <param name="id">Order ID</param>
+        /// <returns>Status of deletion</returns>
+        [HttpDelete("{id}")]
+        public IActionResult DeleteOrder(int id)
+        {
+            var success = _orderService.DeleteOrder(id);
+
+            if (!success)
+            {
+                return NotFound($"Order {id} not found.");
+            }
+
+            return NoContent(); // 204 - Successfully deleted
         }
     }
 }

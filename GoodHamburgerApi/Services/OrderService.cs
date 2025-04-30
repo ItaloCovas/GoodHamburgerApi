@@ -29,32 +29,23 @@ namespace GoodHamburgerApi.Services
             var groupedByType = products.GroupBy(p => p.Type);
             foreach (var group in groupedByType)
             {
-                if (group.Count() > 1)
+                if (group.Count() > 1 && group.Key.ToString() != "Extra")
                     return (null, $"Only one product allowed of type {group.Key}");
             }
 
             // validate combos and apply discount
-            var total = products.Sum(p => p.Price);
+            decimal total = products.Sum(p => p.Price);
             decimal discount = 0;
 
-            bool hasSandwich = products.Any(p => p.Type == ProductType.Sandwich);
-            bool hasFries = products.Any(p => p.Type == ProductType.Extra && p.Name == "Fries");
-            bool hasSoftDrink = products.Any(p => p.Type == ProductType.Extra && p.Name == "Soft drink");
+            bool hasSandwich = products.Count(p => p.Type == ProductType.Sandwich) == 1;
+            bool hasFries = products.Count(p => p.Type == ProductType.Extra && p.Name == "Fries") == 1;
+            bool hasSoftDrink = products.Count(p => p.Type == ProductType.Extra && p.Name == "Soft Drink") == 1;
 
             if (hasSandwich)
             {
-                if (hasFries && hasSoftDrink)
-                {
-                    discount = 0.20m; 
-                }
-                else if (hasFries)
-                {
-                    discount = 0.10m;
-                }
-                else if (hasSoftDrink)
-                {
-                    discount = 0.15m; 
-                }
+                if (hasFries && hasSoftDrink) discount = 0.20m;
+                else if (hasFries) discount = 0.10m;
+                else if (hasSoftDrink) discount = 0.15m;
             }
 
             total -= total * discount;
@@ -92,5 +83,77 @@ namespace GoodHamburgerApi.Services
 
             return orders;
         }
+
+        public (Order? Order, string? Error) UpdateOrder(int id, List<int> productIds)
+        {
+            var order = _context.Orders.Include(o => o.OrderProducts).FirstOrDefault(o => o.Id == id);
+            if (order == null)
+                return (null, $"Order {id} not found.");
+
+            // check for repeated product IDs
+            if (productIds.GroupBy(pid => pid).Any(g => g.Count() > 1))
+                return (null, "You can't add the same product more than once.");
+
+            var products = _context.Products.Where(p => productIds.Contains(p.Id)).ToList();
+            if (products.Count == 0)
+                return (null, "No valid products found.");
+
+            var groupedByType = products.GroupBy(p => p.Type);
+            foreach (var group in groupedByType)
+            {
+                if (group.Count() > 1 && group.Key.ToString() != "Extra")
+                    return (null, $"Only one product allowed of type {group.Key}");
+            }
+
+            // calculate discount
+            decimal total = products.Sum(p => p.Price);
+            decimal discount = 0;
+
+            bool hasSandwich = products.Count(p => p.Type == ProductType.Sandwich) == 1;
+            bool hasFries = products.Count(p => p.Type == ProductType.Extra && p.Name == "Fries") == 1;
+            bool hasSoftDrink = products.Count(p => p.Type == ProductType.Extra && p.Name == "Soft Drink") == 1;
+
+            if (hasSandwich)
+            {
+                if (hasFries && hasSoftDrink) discount = 0.20m;
+                else if (hasFries) discount = 0.10m;
+                else if (hasSoftDrink) discount = 0.15m;
+            }
+
+            total -= total * discount;
+
+
+            order.TotalPrice = total;
+
+            var existingProducts = _context.OrderProducts.Where(op => op.OrderId == id);
+            _context.OrderProducts.RemoveRange(existingProducts);
+
+            var newOrderProducts = productIds.Select(pid => new OrderProduct
+            {
+                OrderId = id,
+                ProductId = pid
+            });
+
+            _context.OrderProducts.AddRange(newOrderProducts);
+            _context.SaveChanges();
+
+            return (order, null);
+        }
+
+        public bool DeleteOrder(int id)
+        {
+            var order = _context.Orders.FirstOrDefault(o => o.Id == id);
+            if (order == null)
+                return false;
+
+            var orderProducts = _context.OrderProducts.Where(op => op.OrderId == id);
+            _context.OrderProducts.RemoveRange(orderProducts);
+
+            _context.Orders.Remove(order);
+            _context.SaveChanges();
+
+            return true;
+        }
+
     }
 }
